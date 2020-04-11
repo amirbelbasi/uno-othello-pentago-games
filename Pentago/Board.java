@@ -1,5 +1,6 @@
 import java.util.Random;
 import java.util.Scanner;
+import jdk.nashorn.internal.ir.ReturnNode;
 import java.io.IOException;
 
 /**
@@ -39,7 +40,7 @@ public class Board {
     private String[] playerNames = new String[2];
 
     /**
-     * constructor
+     * two player constructor
      * 
      * @param blackPlayer name of black player
      * @param whitePlayer name of white player
@@ -51,6 +52,17 @@ public class Board {
         int randIndex = rnd.nextInt(2);
         playerNames[randIndex] = player1;
         playerNames[randIndex == 0 ? 1 : 0] = player2;
+    }
+
+    /**
+     * single player constructor
+     * 
+     * @param player
+     */
+    public Board(String player2) {
+        this.player2 = player2;
+        playerNames[0] = "Mr.PC";
+        playerNames[1] = player2;
     }
 
     /**
@@ -81,7 +93,7 @@ public class Board {
      * @param indexOfBlock 1, 2, 3 or 4
      * @param direction    + or -
      */
-    private void rotate(int indexOfBlock, String direction) {
+    private void rotate(int indexOfBlock, String direction, char[][] board) {
         char[][] holderBoard = new char[6][6];
         int jShift = 0;
         int iShift = 0;
@@ -120,7 +132,11 @@ public class Board {
                 }
             }
         }
-        board = holderBoard;
+        for (int i = 0; i < 6; i++) {
+            for (int j = 0; j < 6; j++) {
+                board[i][j] = holderBoard[i][j];
+            }
+        }
     }
 
     /**
@@ -172,7 +188,7 @@ public class Board {
             Thread.sleep(1500);
             return 0;
         }
-        rotate(Integer.parseInt(blockInp.charAt(0) + ""), blockInp.charAt(2) + "");
+        rotate(Integer.parseInt(blockInp.charAt(0) + ""), blockInp.charAt(2) + "", board);
         turn = switchTurn(turn);
         hasPutDisc = false;
         if (isThereAWinner()) {
@@ -268,14 +284,26 @@ public class Board {
                 }
                 int counter = 1;
                 for (int k = 1; k < 6; k++) {
-                    if (isCoordinatesOfCellValid((i + k) + " " + j) && board[i + k][j] == board[i][j]) {
-                        counter++;
+                    if (!isCoordinatesOfCellValid((i + k) + " " + j)) {
+                        continue;
                     }
-                    if (isCoordinatesOfCellValid((i - k) + " " + j) && board[i - k][j] == board[i][j]) {
+                    if (board[i + k][j] == board[i][j]) {
                         counter++;
+                    } else {
+                        break;
                     }
                 }
-                if (counter == 5) {
+                for (int k = 1; k < 6; k++) {
+                    if (!isCoordinatesOfCellValid((i - k) + " " + j)) {
+                        continue;
+                    }
+                    if (board[i - k][j] == board[i][j]) {
+                        counter++;
+                    } else {
+                        break;
+                    }
+                }
+                if (counter >= 5) {
                     if (board[i][j] == blackCh) {
                         isBlackWinner = true;
                     } else {
@@ -284,14 +312,26 @@ public class Board {
                 }
                 counter = 1;
                 for (int k = 1; k < 6; k++) {
-                    if (isCoordinatesOfCellValid(i + " " + (j + k)) && board[i][j + k] == board[i][j]) {
-                        counter++;
+                    if (!isCoordinatesOfCellValid(i + " " + (j + k))) {
+                        continue;
                     }
-                    if (isCoordinatesOfCellValid(i + " " + (j - k)) && board[i][j - k] == board[i][j]) {
+                    if (board[i][j + k] == board[i][j]) {
                         counter++;
+                    } else {
+                        break;
                     }
                 }
-                if (counter == 5) {
+                for (int k = 1; k < 6; k++) {
+                    if (!isCoordinatesOfCellValid(i + " " + (j - k))) {
+                        continue;
+                    }
+                    if (board[i][j - k] == board[i][j]) {
+                        counter++;
+                    } else {
+                        break;
+                    }
+                }
+                if (counter >= 5) {
                     if (board[i][j] == blackCh) {
                         isBlackWinner = true;
                     } else {
@@ -300,14 +340,26 @@ public class Board {
                 }
                 counter = 1;
                 for (int k = 1; k < 6; k++) {
-                    if (isCoordinatesOfCellValid((i + k) + " " + (j + k)) && board[i + k][j + k] == board[i][j]) {
-                        counter++;
+                    if (!isCoordinatesOfCellValid((i + k) + " " + (j + k))) {
+                        continue;
                     }
-                    if (isCoordinatesOfCellValid((i - k) + " " + (j - k)) && board[i - k][j - k] == board[i][j]) {
+                    if (board[i + k][j + k] == board[i][j]) {
                         counter++;
+                    } else {
+                        break;
                     }
                 }
-                if (counter == 5) {
+                for (int k = 1; k < 6; k++) {
+                    if (!isCoordinatesOfCellValid((i - k) + " " + (j - k))) {
+                        continue;
+                    }
+                    if (board[i - k][j - k] == board[i][j]) {
+                        counter++;
+                    } else {
+                        break;
+                    }
+                }
+                if (counter >= 5) {
                     if (board[i][j] == blackCh) {
                         isBlackWinner = true;
                     } else {
@@ -316,14 +368,26 @@ public class Board {
                 }
                 counter = 1;
                 for (int k = 1; k < 6; k++) {
-                    if (isCoordinatesOfCellValid((i + k) + " " + (j - k)) && board[i + k][j - k] == board[i][j]) {
-                        counter++;
+                    if (!isCoordinatesOfCellValid((i + k) + " " + (j - k))) {
+                        continue;
                     }
-                    if (isCoordinatesOfCellValid((i - k) + " " + (j + k)) && board[i - k][j + k] == board[i][j]) {
+                    if (board[i + k][j - k] == board[i][j]) {
                         counter++;
+                    } else {
+                        break;
                     }
                 }
-                if (counter == 5) {
+                for (int k = 1; k < 6; k++) {
+                    if (!isCoordinatesOfCellValid((i - k) + " " + (j + k))) {
+                        continue;
+                    }
+                    if (board[i - k][j + k] == board[i][j]) {
+                        counter++;
+                    } else {
+                        break;
+                    }
+                }
+                if (counter >= 5) {
                     if (board[i][j] == blackCh) {
                         isBlackWinner = true;
                     } else {
@@ -333,6 +397,118 @@ public class Board {
             }
         }
         return isBlackWinner || isWhiteWinner ? true : false;
+    }
+
+    /**
+     * checks if black is winner
+     * 
+     * @return
+     */
+    private boolean ismyCharAWinner(char[][] board, char myChar) {
+        for (int i = 0; i < 6; i++) {
+            for (int j = 0; j < 6; j++) {
+                if (board[i][j] == emptyCh) {
+                    continue;
+                }
+                int counter = 1;
+                for (int k = 1; k < 6; k++) {
+                    if (!isCoordinatesOfCellValid((i + k) + " " + j)) {
+                        continue;
+                    }
+                    if (board[i + k][j] == board[i][j]) {
+                        counter++;
+                    } else {
+                        break;
+                    }
+                }
+                for (int k = 1; k < 6; k++) {
+                    if (!isCoordinatesOfCellValid((i - k) + " " + j)) {
+                        continue;
+                    }
+                    if (board[i - k][j] == board[i][j]) {
+                        counter++;
+                    } else {
+                        break;
+                    }
+                }
+                if (counter >= 5) {
+                    return true;
+                }
+                counter = 1;
+                for (int k = 1; k < 6; k++) {
+                    if (!isCoordinatesOfCellValid(i + " " + (j + k))) {
+                        continue;
+                    }
+                    if (board[i][j + k] == board[i][j]) {
+                        counter++;
+                    } else {
+                        break;
+                    }
+                }
+                for (int k = 1; k < 6; k++) {
+                    if (!isCoordinatesOfCellValid(i + " " + (j - k))) {
+                        continue;
+                    }
+                    if (board[i][j - k] == board[i][j]) {
+                        counter++;
+                    } else {
+                        break;
+                    }
+                }
+                if (counter >= 5) {
+                    return true;
+                }
+                counter = 1;
+                for (int k = 1; k < 6; k++) {
+                    if (!isCoordinatesOfCellValid((i + k) + " " + (j + k))) {
+                        continue;
+                    }
+                    if (board[i + k][j + k] == board[i][j]) {
+                        counter++;
+                    } else {
+                        break;
+                    }
+                }
+                for (int k = 1; k < 6; k++) {
+                    if (!isCoordinatesOfCellValid((i - k) + " " + (j - k))) {
+                        continue;
+                    }
+                    if (board[i - k][j - k] == board[i][j]) {
+                        counter++;
+                    } else {
+                        break;
+                    }
+                }
+                if (counter >= 5) {
+                    return true;
+                }
+                counter = 1;
+                for (int k = 1; k < 6; k++) {
+                    if (!isCoordinatesOfCellValid((i + k) + " " + (j - k))) {
+                        continue;
+                    }
+                    if (board[i + k][j - k] == board[i][j]) {
+                        counter++;
+                    } else {
+                        break;
+                    }
+                }
+                for (int k = 1; k < 6; k++) {
+                    if (!isCoordinatesOfCellValid((i - k) + " " + (j + k))) {
+                        continue;
+                    }
+                    if (board[i - k][j + k] == board[i][j]) {
+                        counter++;
+                    } else {
+                        break;
+                    }
+                }
+                if (counter >= 5) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -356,5 +532,886 @@ public class Board {
             System.out.println("The winner is: " + playerNames[1]);
             return;
         }
+    }
+
+    /**
+     * a turn played by PC
+     * 
+     * @return
+     * @throws InterruptedException
+     * @throws IOException
+     */
+    public int PCPlayTurn() throws InterruptedException, IOException {
+        Scanner sc = new Scanner(System.in);
+        if (isBoardFull()) {
+            determineWinnner();
+            return -1;
+        }
+        new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+        showBoard();
+        System.out.println(playerNames[turn] + "'s turn ");
+        System.out.print("please enter coordinates of cell you wish to put your disc on: ");
+        String cellInp = getBestPut();
+        System.out.println(cellInp);
+        Thread.sleep(2500);
+        board[Integer.parseInt(cellInp.charAt(0) + "")][Integer
+                .parseInt(cellInp.charAt(2) + "")] = (turn == Turn.BLACK.ordinal() ? blackCh : whiteCh);
+        if (isThereAWinner()) {
+            determineWinnner();
+            return -1;
+        }
+        new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+        showBoard();
+        System.out.println(playerNames[turn] + "'s turn ");
+        System.out.print("please enter details of block you wish to rotate: ");
+        String blockInp = getBestRotate();
+        System.out.println(blockInp);
+        Thread.sleep(2500);
+        rotate(Integer.parseInt(blockInp.charAt(0) + ""), blockInp.charAt(2) + "", board);
+        turn = switchTurn(turn);
+        hasPutDisc = false;
+        if (isThereAWinner()) {
+            determineWinnner();
+            return -1;
+        }
+        return 0;
+    }
+
+    /**
+     * @return the turn
+     */
+    public int getTurn() {
+        return turn;
+    }
+
+    /**
+     * looks for win rotate
+     * 
+     * @return
+     */
+    private String winRotate() {
+        char[][] tmpBoard = new char[6][6];
+        for (int i = 0; i < 6; i++) {
+            for (int j = 0; j < 6; j++) {
+                tmpBoard[i][j] = board[i][j];
+            }
+        }
+        for (int k = 1; k <= 4; k++) {
+            rotate(k, "+", tmpBoard);
+            if (ismyCharAWinner(tmpBoard, blackCh)) {
+                return k + " +";
+            }
+            rotate(k, "-", tmpBoard);
+            rotate(k, "-", tmpBoard);
+            if (ismyCharAWinner(tmpBoard, blackCh)) {
+                return k + " -";
+            }
+            rotate(k, "+", tmpBoard);
+        }
+        return "";
+    }
+
+    /**
+     * looks for win put considering rotating
+     * 
+     * @param myChar
+     * @return
+     */
+    private String winMove(char myChar) {
+        char[][] tmpBoard = new char[6][6];
+        for (int i = 0; i < 6; i++) {
+            for (int j = 0; j < 6; j++) {
+                tmpBoard[i][j] = board[i][j];
+            }
+        }
+        for (int i = 0; i < 6; i++) {
+            for (int j = 0; j < 6; j++) {
+                if (tmpBoard[i][j] != emptyCh) {
+                    continue;
+                }
+                tmpBoard[i][j] = myChar;
+                for (int k = 1; k <= 4; k++) {
+                    rotate(k, "+", tmpBoard);
+                    if (ismyCharAWinner(tmpBoard, myChar)) {
+                        return i + " " + j;
+                    }
+                    rotate(k, "-", tmpBoard);
+                    rotate(k, "-", tmpBoard);
+                    if (ismyCharAWinner(tmpBoard, myChar)) {
+                        return i + " " + j;
+                    }
+                    rotate(k, "+", tmpBoard);
+                }
+                tmpBoard[i][j] = emptyCh;
+            }
+        }
+        return "";
+    }
+
+    private int threeCenterSequence = 0;
+
+    /**
+     * generates best move possible
+     * 
+     * @return
+     */
+    private String getBestPut() {
+        if (winMove(blackCh) != "") {
+            return winMove(blackCh);
+        }
+        if (winMove(whiteCh) != "") {
+            return winMove(whiteCh);
+        }
+        if (board[1][1] == blackCh && board[1][4] == blackCh && board[1][0] == emptyCh && board[1][5] == emptyCh) {
+            if (board[1][2] == blackCh && board[1][3] == emptyCh) {
+                return "1 3";
+            }
+            if (board[1][2] == emptyCh && board[1][3] == blackCh) {
+                return "1 2";
+            }
+        }
+        if (board[1][1] == blackCh && board[4][1] == blackCh && board[0][1] == emptyCh && board[5][1] == emptyCh) {
+            if (board[2][1] == blackCh && board[3][1] == emptyCh) {
+                return "3 1";
+            }
+            if (board[2][1] == emptyCh && board[3][1] == blackCh) {
+                return "2 1";
+            }
+        }
+        if (board[1][1] == emptyCh) {
+            return "1 1";
+        }
+        if (board[1][4] != emptyCh || board[4][1] != emptyCh) {
+            if(board[1][4] == emptyCh)
+            {
+                return "1 4";
+            }
+            if (board[4][1] == emptyCh)
+            {
+                return "4 1";
+            }
+        }
+        if (lookForThreeSideSequence(whiteCh) != "") {
+            return lookForThreeSideSequence(whiteCh);
+        }
+        if (threeCenterSequence == 1 || threeCenterSequence == 4) {
+            if (board[1][4] == emptyCh) {
+                return "1 4";
+            }
+            if (board[4][1] == emptyCh) {
+                return "4 1";
+            }
+        }
+        if (threeCenterSequence == 2 || threeCenterSequence == 3) {
+            if (board[1][1] == emptyCh) {
+                return "1 1";
+            }
+            if (board[4][4] == emptyCh) {
+                return "4 4";
+            }
+        }
+        if (lookForThreeCenterSequence(blackCh) != "") {
+            if (Integer.parseInt(lookForThreeCenterSequence(blackCh).charAt(0) + "") <= 2
+                    && Integer.parseInt(lookForThreeCenterSequence(blackCh).charAt(2) + "") <= 2) {
+                threeCenterSequence = 1;
+            }
+            if (Integer.parseInt(lookForThreeCenterSequence(blackCh).charAt(0) + "") <= 2
+                    && Integer.parseInt(lookForThreeCenterSequence(blackCh).charAt(2) + "") >= 3) {
+                threeCenterSequence = 2;
+            }
+            if (Integer.parseInt(lookForThreeCenterSequence(blackCh).charAt(0) + "") >= 3
+                    && Integer.parseInt(lookForThreeCenterSequence(blackCh).charAt(2) + "") <= 2) {
+                threeCenterSequence = 3;
+            }
+            if (Integer.parseInt(lookForThreeCenterSequence(blackCh).charAt(0) + "") >= 3
+                    && Integer.parseInt(lookForThreeCenterSequence(blackCh).charAt(2) + "") >= 3) {
+                threeCenterSequence = 4;
+            }
+            return lookForThreeCenterSequence(blackCh);
+        }
+        if (lookForThreeSideSequence(blackCh) != "") {
+            return lookForThreeSideSequence(blackCh);
+        }
+        if (prioritiesPut() != "") {
+            return prioritiesPut();
+        }
+        if (getCorner() != "") {
+            return getCorner();
+        }
+        if (getDouble() != "") {
+            return getDouble();
+        }
+        if (getDiagonal() != "") {
+            return getDiagonal();
+        }
+        if (board[1][4] == emptyCh) {
+            return "1 4";
+        }
+        if (board[4][1] == emptyCh) {
+            return "4 1";
+        }
+        if (board[4][4] == emptyCh) {
+            return "4 4";
+        }
+        if (board[1][4] == blackCh) {
+            if (board[1][3] == emptyCh) {
+                return "1 3";
+            }
+            if (board[1][5] == emptyCh) {
+                return "1 5";
+            }
+            if (board[0][4] == emptyCh) {
+                return "0 4";
+            }
+            if (board[2][4] == emptyCh) {
+                return "2 4";
+            }
+            if (board[3][1] == emptyCh) {
+                return "3 1";
+            }
+            if (board[4][0] == emptyCh) {
+                return "4 0";
+            }
+            if (board[4][2] == emptyCh) {
+                return "4 2";
+            }
+            if (board[5][1] == emptyCh) {
+                return "5 1";
+            }
+        }
+        if (board[4][1] == blackCh) {
+            if (board[3][1] == emptyCh) {
+                return "3 1";
+            }
+            if (board[4][0] == emptyCh) {
+                return "4 0";
+            }
+            if (board[4][2] == emptyCh) {
+                return "4 2";
+            }
+            if (board[5][1] == emptyCh) {
+                return "5 1";
+            }
+            if (board[1][3] == emptyCh) {
+                return "1 3";
+            }
+            if (board[1][5] == emptyCh) {
+                return "1 5";
+            }
+            if (board[0][4] == emptyCh) {
+                return "0 4";
+            }
+            if (board[2][4] == emptyCh) {
+                return "2 4";
+            }
+        }
+        if (board[2][2] == emptyCh) {
+            return "2 2";
+        }
+        if (board[3][3] == emptyCh) {
+            return "3 3";
+        }
+        if (board[2][0] == emptyCh) {
+            return "2 0";
+        }
+        if (board[0][2] == emptyCh) {
+            return "0 2";
+        }
+        if (board[3][5] == emptyCh) {
+            return "3 5";
+        }
+        if (board[5][3] == emptyCh) {
+            return "5 3";
+        }
+        if (board[0][0] == emptyCh) {
+            return "0 0";
+        }
+        if (board[5][5] == emptyCh) {
+            return "5 5";
+        }
+        if (board[0][5] == emptyCh) {
+            return "0 5";
+        }
+        if (board[5][0] == emptyCh) {
+            return "5 0";
+        }
+        for (int i = 0; i < 6; i++) {
+            for (int j = 0; j < 6; j++) {
+                if (board[i][j] == emptyCh) {
+                    return i + " " + j;
+                }
+            }
+        }
+        return "";
+    }
+
+    /**
+     * generates best rotate possible
+     * 
+     * @return
+     */
+    private String getBestRotate() {
+        if (winRotate() != "") {
+            return winRotate();
+        }
+        if (board[5][0] == blackCh && board[3][0] == blackCh && board[3][2] == blackCh) {
+            return "3 +";
+        }
+        if (board[5][0] == blackCh && board[5][2] == blackCh && board[3][2] == blackCh) {
+            return "3 -";
+        }
+        if (board[0][5] == blackCh && board[0][3] == blackCh && board[2][3] == blackCh) {
+            return "2 -";
+        }
+        if (board[0][5] == blackCh && board[2][5] == blackCh && board[2][3] == blackCh) {
+            return "2 +";
+        }
+        if (board[3][2] != blackCh) {
+            if (board[3][0] == blackCh) {
+                return "3 +";
+            }
+            if (board[5][2] == blackCh) {
+                return "3 -";
+            }
+            if (board[5][0] == blackCh) {
+                return "3 +";
+            }
+        }
+        if (board[2][3] != blackCh) {
+            if (board[0][3] == blackCh) {
+                return "2 -";
+            }
+            if (board[2][5] == blackCh) {
+                return "2 +";
+            }
+            if (board[0][5] == blackCh) {
+                return "2 +";
+            }
+        }
+        if (goodRotate() != "") {
+            return goodRotate();
+        }
+        return "4 +"; // default rotate
+    }
+
+    /**
+     * looks for centeral 3 black sequences
+     * 
+     * @return
+     */
+    private String lookForThreeCenterSequence(char myChar) {
+        int i, j;
+        for (i = 0; i < 6; i++) {
+            if (i % 3 != 1) // 1 4
+            {
+                continue;
+            }
+            int counter = 0;
+            for (j = 0; j < 3; j++) {
+                if (board[i][j] == myChar) {
+                    counter++;
+                }
+            }
+            if (counter == 2) {
+                for (int k = 0; k < 3; k++) {
+                    if (board[i][k] == emptyCh) {
+                        return i + " " + k;
+                    }
+                }
+            }
+            counter = 0;
+            for (j = 3; j < 6; j++) {
+                if (board[i][j] == myChar) {
+                    counter++;
+                }
+            }
+            if (counter == 2) {
+                for (int k = 3; k < 6; k++) {
+                    if (board[i][k] == emptyCh) {
+                        return i + " " + k;
+                    }
+                }
+            }
+        }
+
+        for (j = 0; j < 6; j++) {
+            if (j % 3 != 1) // 1 4
+            {
+                continue;
+            }
+            int counter = 0;
+            for (i = 0; i < 3; i++) {
+                if (board[i][j] == myChar) {
+                    counter++;
+                }
+            }
+            if (counter == 2) {
+                for (int k = 0; k < 3; k++) {
+                    if (board[k][j] == emptyCh) {
+                        return k + " " + j;
+                    }
+                }
+            }
+            counter = 0;
+            for (i = 3; i < 6; i++) {
+                if (board[i][j] == myChar) {
+                    counter++;
+                }
+            }
+            if (counter == 2) {
+                for (int k = 3; k < 6; k++) {
+                    if (board[k][j] == emptyCh) {
+                        return k + " " + j;
+                    }
+                }
+            }
+        }
+        return "";
+    }
+
+    /**
+     * looks for Three Side Sequences
+     * 
+     * @return
+     */
+    private String lookForThreeSideSequence(char myChar) {
+        int i, j;
+        for (i = 0; i < 6; i++) {
+            if ((i % 3) % 2 != 0) // 0 2 3 5
+            {
+                continue;
+            }
+            int counter = 0;
+            for (j = 0; j < 3; j++) {
+                if (board[i][j] == myChar) {
+                    counter++;
+                }
+            }
+            if (counter == 2) {
+                for (int k = 0; k < 3; k++) {
+                    if (board[i][k] == emptyCh) {
+                        return i + " " + k;
+                    }
+                }
+            }
+            counter = 0;
+            for (j = 3; j < 6; j++) {
+                if (board[i][j] == myChar) {
+                    counter++;
+                }
+            }
+            if (counter == 2) {
+                for (int k = 3; k < 6; k++) {
+                    if (board[i][k] == emptyCh) {
+                        return i + " " + k;
+                    }
+                }
+            }
+        }
+
+        for (j = 0; j < 6; j++) {
+            if ((j % 3) % 2 != 0) // 0 2 3 5
+            {
+                continue;
+            }
+            int counter = 0;
+            for (i = 0; i < 3; i++) {
+                if (board[i][j] == myChar) {
+                    counter++;
+                }
+            }
+            if (counter == 2) {
+                for (int k = 0; k < 3; k++) {
+                    if (board[k][j] == emptyCh) {
+                        return k + " " + j;
+                    }
+                }
+            }
+            counter = 0;
+            for (i = 3; i < 6; i++) {
+                if (board[i][j] == myChar) {
+                    counter++;
+                }
+            }
+            if (counter == 2) {
+                for (int k = 3; k < 6; k++) {
+                    if (board[k][j] == emptyCh) {
+                        return k + " " + j;
+                    }
+                }
+            }
+        }
+        return "";
+    }
+
+    /**
+     * its a priority based set of moves
+     * 
+     * @return
+     */
+    private String prioritiesPut() {
+        if (board[3][4] == whiteCh && board[5][4] == emptyCh) {
+            return "5 4";
+        }
+        if (board[4][3] == whiteCh && board[4][5] == emptyCh) {
+            return "4 5";
+        }
+        if (board[5][4] == whiteCh && board[3][4] == emptyCh) {
+            return "3 4";
+        }
+        if (board[4][5] == whiteCh && board[4][3] == emptyCh) {
+            return "4 3";
+        }
+
+        if (board[0][1] == whiteCh && board[2][1] == emptyCh) {
+            return "2 1";
+        }
+        if (board[2][1] == whiteCh && board[0][1] == emptyCh) {
+            return "0 1";
+        }
+        if (board[1][0] == whiteCh && board[1][2] == emptyCh) {
+            return "1 2";
+        }
+        if (board[1][2] == whiteCh && board[1][0] == emptyCh) {
+            return "1 0";
+        }
+
+        if (board[0][4] == whiteCh && board[2][4] == emptyCh) {
+            return "2 4";
+        }
+        if (board[2][4] == whiteCh && board[0][4] == emptyCh) {
+            return "0 4";
+        }
+        if (board[1][3] == whiteCh && board[1][5] == emptyCh) {
+            return "1 5";
+        }
+        if (board[1][5] == whiteCh && board[1][3] == emptyCh) {
+            return "1 3";
+        }
+
+        if (board[3][1] == whiteCh && board[5][1] == emptyCh) {
+            return "5 1";
+        }
+        if (board[5][1] == whiteCh && board[3][1] == emptyCh) {
+            return "3 1";
+        }
+        if (board[4][0] == whiteCh && board[4][2] == emptyCh) {
+            return "4 2";
+        }
+        if (board[4][2] == whiteCh && board[4][0] == emptyCh) {
+            return "4 0";
+        }
+
+        if (board[3][0] != blackCh && board[3][2] != blackCh && board[5][0] != blackCh && board[5][2] != blackCh) {
+            if (board[3][2] == emptyCh) {
+                return "3 2";
+            }
+            if (board[3][0] == emptyCh) {
+                return "3 0";
+            }
+            if (board[5][2] == emptyCh) {
+                return "5 2";
+            }
+            if (board[5][0] == emptyCh) {
+                return "5 0";
+            }
+        }
+        if (board[0][3] != blackCh && board[2][3] != blackCh && board[0][5] != blackCh && board[2][5] != blackCh) {
+            if (board[2][3] == emptyCh) {
+                return "2 3";
+            }
+            if (board[0][3] == emptyCh) {
+                return "0 3";
+            }
+            if (board[2][5] == emptyCh) {
+                return "2 5";
+            }
+            if (board[0][5] == emptyCh) {
+                return "0 5";
+            }
+        }
+        if (board[3][4] == emptyCh) {
+            return "3 4";
+        }
+        if (board[4][5] == emptyCh) {
+            return "4 5";
+        }
+        if (board[4][3] == emptyCh) {
+            return "4 3";
+        }
+        if (board[5][4] == emptyCh) {
+            return "5 4";
+        }
+        if (board[0][1] == emptyCh) {
+            return "0 1";
+        }
+        if (board[1][2] == emptyCh) {
+            return "1 2";
+        }
+        if (board[1][0] == emptyCh) {
+            return "1 0";
+        }
+        if (board[2][1] == emptyCh) {
+            return "2 1";
+        }
+
+        if (board[3][2] == emptyCh) {
+            return "3 2";
+        }
+        if (board[2][3] == emptyCh) {
+            return "2 3";
+        }
+        if (board[5][2] == emptyCh) {
+            return "5 2";
+        }
+        if (board[3][0] == emptyCh) {
+            return "3 0";
+        }
+        if (board[0][3] == emptyCh) {
+            return "0 3";
+        }
+        if (board[2][5] == emptyCh) {
+            return "2 5";
+        }
+        return "";
+    }
+
+    /**
+     * looks for corners
+     * 
+     * @return
+     */
+    private String getCorner() {
+        for (int k = 1; k <= 4; k++) {
+            int iShift = 0, jShift = 0;
+            if (k == 2) {
+                jShift = 3;
+            }
+            if (k == 3) {
+                iShift = 3;
+            }
+            if (k == 4) {
+                iShift = 3;
+                jShift = 3;
+            }
+            if (board[0 + iShift][0 + jShift] == emptyCh && board[0 + iShift][1 + jShift] == blackCh
+                    && board[1 + iShift][0 + jShift] == blackCh && board[0 + iShift][2 + jShift] == emptyCh
+                    && board[2 + iShift][0 + jShift] == emptyCh) {
+                return (0 + iShift) + " " + (0 + jShift);
+            }
+            if (board[0 + iShift][2 + jShift] == emptyCh && board[0 + iShift][1 + jShift] == blackCh
+                    && board[1 + iShift][2 + jShift] == blackCh && board[0 + iShift][0 + jShift] == emptyCh
+                    && board[2 + iShift][2 + jShift] == emptyCh) {
+                return (0 + iShift) + " " + (2 + jShift);
+            }
+            if (board[2 + iShift][0 + jShift] == emptyCh && board[1 + iShift][0 + jShift] == blackCh
+                    && board[2 + iShift][1 + jShift] == blackCh && board[0 + iShift][0 + jShift] == emptyCh
+                    && board[2 + iShift][2 + jShift] == emptyCh) {
+                return (2 + iShift) + " " + (0 + jShift);
+            }
+            if (board[2 + iShift][2 + jShift] == emptyCh && board[2 + iShift][1 + jShift] == blackCh
+                    && board[1 + iShift][2 + jShift] == blackCh && board[2 + iShift][0 + jShift] == emptyCh
+                    && board[0 + iShift][2 + jShift] == emptyCh) {
+                return (2 + iShift) + " " + (2 + jShift);
+            }
+        }
+        return "";
+    }
+
+    /**
+     * a good rotate is one that keeps the diagonal chance between square 1 and 4
+     * 
+     * @return
+     */
+    private String goodRotate() {
+        int k;
+        char[][] tmpBoard = new char[6][6];
+        for (int i = 0; i < 6; i++) {
+            for (int j = 0; j < 6; j++) {
+                tmpBoard[i][j] = board[i][j];
+            }
+        }
+        if (tmpBoard[1][2] == blackCh && tmpBoard[0][1] == blackCh) {
+            k = 4;
+            rotate(k, "+", tmpBoard);
+            if ((tmpBoard[4][5] == blackCh && tmpBoard[3][4] == blackCh)) {
+                return k + " +";
+            }
+            rotate(k, "-", tmpBoard);
+            rotate(k, "-", tmpBoard);
+            if ((tmpBoard[4][5] == blackCh && tmpBoard[3][4] == blackCh)) {
+                return k + " -";
+            }
+            rotate(k, "+", tmpBoard);
+        }
+        if (tmpBoard[1][0] == blackCh && tmpBoard[2][1] == blackCh) {
+            k = 4;
+            rotate(k, "+", tmpBoard);
+            if ((tmpBoard[4][3] == blackCh && tmpBoard[5][4] == blackCh)) {
+                return k + " +";
+            }
+            rotate(k, "-", tmpBoard);
+            rotate(k, "-", tmpBoard);
+            if ((tmpBoard[4][3] == blackCh && tmpBoard[5][4] == blackCh)) {
+                return k + " -";
+            }
+            rotate(k, "+", tmpBoard);
+        }
+        if (tmpBoard[3][4] == blackCh && tmpBoard[4][5] == blackCh) {
+            k = 1;
+            rotate(k, "+", tmpBoard);
+            if ((tmpBoard[0][1] == blackCh && tmpBoard[1][2] == blackCh)) {
+                return k + " +";
+            }
+            rotate(k, "-", tmpBoard);
+            rotate(k, "-", tmpBoard);
+            if ((tmpBoard[0][1] == blackCh && tmpBoard[1][2] == blackCh)) {
+                return k + " -";
+            }
+            rotate(k, "+", tmpBoard);
+        }
+        if (tmpBoard[4][3] == blackCh && tmpBoard[5][4] == blackCh) {
+            k = 1;
+            rotate(k, "+", tmpBoard);
+            if ((tmpBoard[1][0] == blackCh && tmpBoard[2][1] == blackCh)) {
+                return k + " +";
+            }
+            rotate(k, "-", tmpBoard);
+            rotate(k, "-", tmpBoard);
+            if ((tmpBoard[1][0] == blackCh && tmpBoard[2][1] == blackCh)) {
+                return k + " -";
+            }
+            rotate(k, "+", tmpBoard);
+        }
+        k = 1;
+        rotate(k, "+", tmpBoard);
+        if ((tmpBoard[1][2] == blackCh && tmpBoard[0][1] == blackCh)
+                || (tmpBoard[1][0] == blackCh && tmpBoard[2][1] == blackCh)) {
+            return k + " +";
+        }
+        rotate(k, "-", tmpBoard);
+        rotate(k, "-", tmpBoard);
+        if ((tmpBoard[1][2] == blackCh && tmpBoard[0][1] == blackCh)
+                || (tmpBoard[1][0] == blackCh && tmpBoard[2][1] == blackCh)) {
+            return k + " -";
+        }
+        rotate(k, "+", tmpBoard);
+        k = 4;
+        rotate(k, "+", tmpBoard);
+        if ((tmpBoard[4][5] == blackCh && tmpBoard[3][4] == blackCh)
+                || (tmpBoard[4][3] == blackCh && tmpBoard[5][4] == blackCh)) {
+            return k + " +";
+        }
+        rotate(k, "-", tmpBoard);
+        rotate(k, "-", tmpBoard);
+        if ((tmpBoard[4][5] == blackCh && tmpBoard[3][4] == blackCh)
+                || (tmpBoard[4][3] == blackCh && tmpBoard[5][4] == blackCh)) {
+            return k + " -";
+        }
+        return "";
+    }
+
+    /**
+     * looks for double trick
+     * 
+     * @return
+     */
+    private String getDouble() {
+        for (int k = 1; k <= 4; k++) {
+            int iShift = 0, jShift = 0;
+            if (k == 2) {
+                jShift = 3;
+            }
+            if (k == 3) {
+                iShift = 3;
+            }
+            if (k == 4) {
+                iShift = 3;
+                jShift = 3;
+            }
+            if (board[0 + iShift][0 + jShift] == emptyCh && board[0 + iShift][1 + jShift] == emptyCh
+                    && board[0 + iShift][2 + jShift] == blackCh && board[1 + iShift][0 + jShift] == blackCh
+                    && board[2 + iShift][0 + jShift] == emptyCh) {
+                return (0 + iShift) + " " + (0 + jShift);
+            }
+            if (board[0 + iShift][0 + jShift] == emptyCh && board[2 + iShift][0 + jShift] == emptyCh
+                    && board[1 + iShift][0 + jShift] == blackCh && board[2 + iShift][2 + jShift] == blackCh
+                    && board[2 + iShift][1 + jShift] == emptyCh) {
+                return (2 + iShift) + " " + (0 + jShift);
+            }
+            if (board[0 + iShift][0 + jShift] == emptyCh && board[0 + iShift][1 + jShift] == blackCh
+                    && board[0 + iShift][2 + jShift] == emptyCh && board[1 + iShift][0 + jShift] == emptyCh
+                    && board[2 + iShift][0 + jShift] == blackCh) {
+                return (0 + iShift) + " " + (0 + jShift);
+            }
+            if (board[0 + iShift][0 + jShift] == emptyCh && board[0 + iShift][1 + jShift] == blackCh
+                    && board[0 + iShift][2 + jShift] == emptyCh && board[1 + iShift][2 + jShift] == emptyCh
+                    && board[2 + iShift][2 + jShift] == blackCh) {
+                return (0 + iShift) + " " + (2 + jShift);
+            }
+            if (board[0 + iShift][0 + jShift] == blackCh && board[0 + iShift][1 + jShift] == emptyCh
+                    && board[0 + iShift][2 + jShift] == emptyCh && board[1 + iShift][2 + jShift] == blackCh
+                    && board[2 + iShift][2 + jShift] == emptyCh) {
+                return (0 + iShift) + " " + (2 + jShift);
+            }
+            if (board[0 + iShift][2 + jShift] == emptyCh && board[1 + iShift][2 + jShift] == blackCh
+                    && board[2 + iShift][0 + jShift] == blackCh && board[2 + iShift][1 + jShift] == emptyCh
+                    && board[2 + iShift][2 + jShift] == emptyCh) {
+                return (2 + iShift) + " " + (2 + jShift);
+            }
+            if (board[0 + iShift][2 + jShift] == blackCh && board[1 + iShift][2 + jShift] == emptyCh
+                    && board[2 + iShift][0 + jShift] == emptyCh && board[2 + iShift][1 + jShift] == blackCh
+                    && board[2 + iShift][2 + jShift] == emptyCh) {
+                return (2 + iShift) + " " + (2 + jShift);
+            }
+            if (board[0 + iShift][0 + jShift] == blackCh && board[1 + iShift][0 + jShift] == emptyCh
+                    && board[2 + iShift][0 + jShift] == emptyCh && board[2 + iShift][1 + jShift] == blackCh
+                    && board[2 + iShift][2 + jShift] == emptyCh) {
+                return (2 + iShift) + " " + (0 + jShift);
+            }
+        }
+        return "";
+    }
+
+    /**
+     * get a diagonal trick
+     * 
+     * @return
+     */
+    private String getDiagonal() {
+        for (int k = 1; k <= 4; k++) {
+            int iShift = 0, jShift = 0;
+            if (k == 2) {
+                jShift = 3;
+            }
+            if (k == 3) {
+                iShift = 3;
+            }
+            if (k == 4) {
+                iShift = 3;
+                jShift = 3;
+            }
+            if (board[0 + iShift][0 + jShift] == blackCh && board[2 + iShift][2 + jShift] == blackCh) {
+                if (board[1 + iShift][0 + jShift] == emptyCh && board[2 + iShift][0 + jShift] == emptyCh
+                        && board[2 + iShift][1 + jShift] == emptyCh) {
+                    return (2 + iShift) + " " + (0 + jShift);
+                }
+                if (board[0 + iShift][1 + jShift] == emptyCh && board[0 + iShift][2 + jShift] == emptyCh
+                        && board[1 + iShift][2 + jShift] == emptyCh) {
+                    return (0 + iShift) + " " + (2 + jShift);
+                }
+            }
+            if (board[0 + iShift][2 + jShift] == blackCh && board[2 + iShift][0 + jShift] == blackCh) {
+                if (board[0 + iShift][0 + jShift] == emptyCh && board[0 + iShift][1 + jShift] == emptyCh
+                        && board[1 + iShift][0 + jShift] == emptyCh) {
+                    return (0 + iShift) + " " + (0 + jShift);
+                }
+                if (board[1 + iShift][2 + jShift] == emptyCh && board[2 + iShift][2 + jShift] == emptyCh
+                        && board[2 + iShift][1 + jShift] == emptyCh) {
+                    return (2 + iShift) + " " + (2 + jShift);
+                }
+            }
+        }
+        return "";
     }
 }
