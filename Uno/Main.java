@@ -3,7 +3,22 @@ import java.util.Scanner;
 import java.io.IOException;
 
 /**
- * Main USER GUIDE: type of player would be "PC" or "user"
+ * Main USER GUIDE:
+ * 
+ * player name must start with a alphabetical character
+ * because of showing them
+ * 
+ * type of player would be "PC" or "user"
+ * 
+ * entering a card by user should be like "<card name> <card color>"
+ * here are some examples:
+ * 2 red
+ * 0 blue
+ * draw green
+ * skip yellow
+ * reverse red
+ * wild-draw black
+ * wild-color black
  */
 public class Main {
 
@@ -36,6 +51,13 @@ public class Main {
             if (!hasPickedName) {
                 System.out.print("enter name of player #" + i + ": ");
                 name = myScanner.nextLine();
+                if(!((name.charAt(0) >= 'a' && name.charAt(0) <= 'z') || (name.charAt(0) >= 'A' && name.charAt(0) <= 'Z')))
+                {
+                    new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+                    System.out.println("invalid input");
+                    Thread.sleep(1500);
+                    continue;
+                }
                 hasPickedName = true;
             }
             new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
