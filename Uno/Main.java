@@ -75,6 +75,5 @@ public class Main {
         }
         // so now players has been added to game
         myGame.startARound();
-        myScanner.close();
     }
 }

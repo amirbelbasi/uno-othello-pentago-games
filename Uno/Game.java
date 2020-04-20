@@ -18,12 +18,11 @@ public class Game {
     private final int CARDINALINETOBESHOWN = 10;
     private int turn = 0;
     private int nplayers;
-    public boolean endGame = false;
     public String direction = "clock wise";
     public String currentColor;
     private Card currentCard;
-    private int consecutiveDraws = 1;
-    private int consecutiveWildDraws = 1;
+    private int consecutiveDraws = 0;
+    private int consecutiveWildDraws = 0;
     private boolean isCurrentCardFresh = true;
     public ArrayList<Player> players = new ArrayList<>();
     private ArrayList<Card> storage = new ArrayList<>();
@@ -86,14 +85,26 @@ public class Game {
             if (storage.get(randomIndex).color != "black") {
                 currentCard = storage.get(randomIndex);
                 storage.remove(randomIndex);
-                updateCurrentColor();
+                if(currentCard.name.equals("skip"))
+                {
+                    advanceTurn();
+                }
+                if(currentCard.name.equals("reverse"))
+                {
+                    switchDirection();
+                }
+                if (currentCard.name.equals("draw"))
+                {
+                    consecutiveDraws++;
+                }
+                currentColor = currentCard.color;
                 break;
             }
         }
         this.nplayers = nplayers;
     }
 
-    private void showGame() throws InterruptedException, IOException
+    private void showGame(int turnType) throws InterruptedException, IOException
     {
         new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
         System.out.println("current direction: " + direction);
@@ -138,17 +149,14 @@ public class Game {
         ArrayList<Card> tmp = new ArrayList<>();
         tmp.add(currentCard);
         showCardCollection(tmp);
-        System.out.println("---------------------");
-        showCardCollection(players.get(turn).playerCards);
+        if(turnType == TurnType.USER.ordinal())
+        {
+            System.out.println("---------------------");
+            System.out.println(players.get(turn).name + "'s (" + players.get(turn).keyStr + ") deck: ");
+            showCardCollection(players.get(turn).playerCards);
+        }
         System.out.println("---------------------");
         System.out.println(players.get(turn).name + "'s (" + players.get(turn).keyStr + ") turn: ");
-    }
-
-    /**
-     * updates current color
-     */
-    private void updateCurrentColor() {
-        currentColor = currentCard.color;
     }
 
     /**
@@ -160,14 +168,118 @@ public class Game {
         for (int i = 0; i < nplayers; i++) {
             getCard(7, i);
         }
+        isCurrentCardFresh = true;
         while (true) {
-            showGame();
-            Thread.sleep(2500);
+            if(endRound())
+            {
+                if (currentCard.name.equals("draw") && isCurrentCardFresh) {
+                    getCard(consecutiveDraws * 2, turn);
+                    showGame(TurnType.USER.ordinal());
+                    Thread.sleep(2500);
+                    advanceTurn();
+                    consecutiveDraws = 0;
+                }
+                if (currentCard.name.equals("wild-draw") && isCurrentCardFresh) {
+                    getCard(consecutiveWildDraws * 4, turn);
+                    showGame(TurnType.USER.ordinal());
+                    Thread.sleep(2500);
+                    advanceTurn();
+                    consecutiveWildDraws = 0;
+                }
+                showWinner();
+                break;
+            }
             if (players.get(turn).type.equals("PC")) {
+                showGame(TurnType.PC.ordinal());
+                Thread.sleep(2500);
                 playPCTurn();
             } else {
+                showGame(TurnType.USER.ordinal());
                 playUserTurn();
             }
+        }
+    }
+
+    /**
+     * checks if it should end the game
+     * @return
+     */
+    private boolean endRound()
+    {
+        for(Player i: players)
+        {
+            if(i.playerCards.size() == 0)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * shows the winner
+     * @throws InterruptedException
+     * @throws IOException
+     */
+    private void showWinner() throws InterruptedException, IOException
+    {
+        new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+        for(Player i: players)
+        {
+            if(i.playerCards.size() == 0)
+            {
+                System.out.println("The winner is: " + i.name);
+                break;
+            }
+        }
+        System.out.println("---------------------");
+        int[] playersPoints = new int[nplayers];
+        for (int i = 0; i < nplayers; i++)
+        {
+            playersPoints[i] = 0;
+        }
+        for(int i = 0; i < nplayers; i++)
+        {
+            for(int j = 0; j < players.get(i).playerCards.size(); j++)
+            {
+                if(players.get(i).playerCards.get(j).color.equals("black"))
+                {
+                    playersPoints[i] += 50;
+                }
+                else if (players.get(i).playerCards.get(j).name.equals("reverse")
+                        || players.get(i).playerCards.get(j).name.equals("skip")
+                        || players.get(i).playerCards.get(j).name.equals("draw")) {
+                    playersPoints[i] += 20;
+                }
+                else
+                {
+                    playersPoints[i] += Integer.parseInt(players.get(i).playerCards.get(j).name);
+                }
+            }
+        }
+        String[] playersNames = new String[nplayers];
+        for(int i = 0; i < nplayers; i++)
+        {
+            playersNames[i] = players.get(i).name;
+        }
+        for (int i = 0; i < nplayers - 1; i++)
+        {
+            for (int j = i; j < nplayers; j++)
+            {
+                if(playersPoints[i] > playersPoints[j])
+                {
+                    int tmpInt = playersPoints[i];
+                    String tmpStr = playersNames[i];
+                    playersPoints[i] = playersPoints[j];
+                    playersNames[i] = playersNames[j];
+                    playersPoints[j] = tmpInt;
+                    playersNames[j] = tmpStr;
+                }
+            }
+        }
+        for (int i = 0; i < nplayers; i++)
+        {
+            System.out.println(playersNames[i] + "'s point: " + playersPoints[i]);
         }
     }
 
@@ -184,7 +296,8 @@ public class Game {
                 }
             }
             getCard(consecutiveDraws * 2, turn);
-            consecutiveDraws = 1;
+            advanceTurn();
+            consecutiveDraws = 0;
             return;
         }
         if (currentCard.name.equals("wild-draw") && isCurrentCardFresh) {
@@ -195,23 +308,21 @@ public class Game {
                 }
             }
             getCard(consecutiveWildDraws * 4, turn);
-            consecutiveWildDraws = 1;
+            advanceTurn();
+            consecutiveWildDraws = 0;
             return;
         }
         determinePossibleCards();
         if (players.get(turn).possibleCards.size() == 0) {
-            for (Card i : players.get(turn).playerCards) {
-                if (i.name.equals("wild-draw")) {
-                    dropCard(i, TurnType.PC.ordinal());
-                    return;
-                }
-            }
             getCard(1, turn);
             determinePossibleCards();
             if (players.get(turn).possibleCards.size() != 0) {
-                dropCard(players.get(turn).possibleCards.get(0), TurnType.PC.ordinal());
+                dropCard(players.get(turn).possibleCards.get(randomIndex(players.get(turn).possibleCards)), TurnType.PC.ordinal());
             }
-            advanceTurn();
+            else
+            {
+                advanceTurn();
+            }
         } else {
             dropCard(players.get(turn).possibleCards.get(randomIndex(players.get(turn).possibleCards)), TurnType.PC.ordinal());
         }
@@ -233,7 +344,10 @@ public class Game {
                 getPlayerInp();
             }
             getCard(consecutiveDraws * 2, turn);
-            consecutiveDraws = 1;
+            showGame(TurnType.USER.ordinal());
+            Thread.sleep(2500);
+            advanceTurn();
+            consecutiveDraws = 0;
             return;
         }
         if (currentCard.name.equals("wild-draw") && isCurrentCardFresh) {
@@ -246,23 +360,26 @@ public class Game {
             {
                 getPlayerInp();
             }
-            getCard(consecutiveDraws * 4, turn);
-            consecutiveDraws = 1;
+            getCard(consecutiveWildDraws * 4, turn);
+            showGame(TurnType.USER.ordinal());
+            Thread.sleep(2500);
+            advanceTurn();
+            consecutiveWildDraws = 0;
             return;
         }
         determinePossibleCards();
         if (players.get(turn).possibleCards.size() == 0) {
-            for (Card i : players.get(turn).playerCards) {
-                if (i.name.equals("wild-draw")) {
-                    getPlayerInp();
-                }
-            }
             getCard(1, turn);
             determinePossibleCards();
             if (players.get(turn).possibleCards.size() != 0) {
                 getPlayerInp();
             }
-            advanceTurn();
+            else
+            {
+                showGame(TurnType.USER.ordinal());
+                Thread.sleep(2500);
+                advanceTurn();
+            }
         }
         else {
             getPlayerInp();
@@ -277,7 +394,7 @@ public class Game {
     private void getPlayerInp() throws InterruptedException, IOException {
         Scanner myScanner = new Scanner(System.in);
         while (true) {
-            showGame();
+            showGame(TurnType.USER.ordinal());
             System.out.print("enter card you want to drop: ");
             String inp = myScanner.nextLine();
             String[] tokenized = new String[2];
@@ -315,6 +432,14 @@ public class Game {
                 players.get(turn).possibleCards.add(players.get(turn).playerCards.get(i));
             }
         }
+        if (players.get(turn).possibleCards.size() == 0)
+        {
+            for (int i = 0; i < players.get(turn).playerCards.size(); i++) {
+                if (players.get(turn).playerCards.get(i).name.equals("wild-draw")) {
+                    players.get(turn).possibleCards.add(players.get(turn).playerCards.get(i));
+                }
+            }
+        }
     }
 
     /**
@@ -323,6 +448,14 @@ public class Game {
     private void dropCard(Card cardToBeAdd, int turnType) throws InterruptedException, IOException  {
         if(cardToBeAdd.color.equals("black")) {
             askColor(turnType);
+        }
+        storage.add(currentCard);
+        currentCard = cardToBeAdd;
+        players.get(turn).playerCards.remove(cardToBeAdd);
+        if (turnType == TurnType.USER.ordinal())
+        {
+            showGame(TurnType.USER.ordinal());
+            Thread.sleep(2500);
         }
         if(cardToBeAdd.name.equals("skip"))
         {
@@ -340,10 +473,9 @@ public class Game {
         {
             consecutiveWildDraws++;
         }
-        storage.add(cardToBeAdd);
-        currentCard = cardToBeAdd;
-        players.get(turn).playerCards.remove(cardToBeAdd);
-        updateCurrentColor();
+        if(!cardToBeAdd.color.equals("black")) {
+            currentColor = currentCard.color;
+        }
         advanceTurn();
         isCurrentCardFresh = true;
     }
@@ -357,7 +489,6 @@ public class Game {
             players.get(indexOfPlayer).playerCards.add(storage.get(randomIndex));
             storage.remove(randomIndex);
         }
-        advanceTurn();
         isCurrentCardFresh = false;
     }
 
@@ -409,7 +540,7 @@ public class Game {
         } else {
             while(true)
             {
-                showGame();
+                showGame(TurnType.USER.ordinal());
                 Scanner myScanner = new Scanner(System.in);
                 System.out.print("enter current color you wish: ");
                 String colorToBeChanged = myScanner.nextLine();
@@ -430,7 +561,7 @@ public class Game {
      * switchs the direction of game
      */
     private void switchDirection() {
-        direction = direction.equals("clock wise") ? "clock wise" : "counter clock wise";
+        direction = direction.equals("clock wise") ? "counter clock wise" : "clock wise";
     }
 
     /**
